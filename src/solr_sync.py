@@ -2,11 +2,13 @@
 # encoding:utf8
 
 
-from pymysqlreplication import BinLogStreamReader
 import config
 import logging
+import requests
+import json
+from search_engine_abstract import search_engine_abstract
 
-class SolrSync(object):
+class SolrSync(search_engine_abstract):
 
     def __init__(self):
         logging.basicConfig(filename=config.file_path,
@@ -17,32 +19,32 @@ class SolrSync(object):
         self._mysql_config = config.mysql_config
         self._solr_index_mysql_key_mapping = config.solr_index_mysql_key_mapping
 
-    def _post_data_to_solr(self, url, data, operation):
-        '''
-        use json data post to solr
-        :param url:
-        :param data:
-        :param operation:
-        :return:
-        '''
-        if operation == 'index':
-            url = url + '/'
-            pass
-        elif operation == 'delete':
-            pass
-        elif operation == 'update':
-            pass
-        elif operation == 'select':
-            pass
+    def post_data_to_search_engine(self, schema, host, port, path, data, headers={'Content-type':'application/json'}, params="commit=true"):
+        url = schema + "://" + host + ":" + str(port) + path + "/update/json"
+        header_content_type = headers.get("Content-type")
+        if header_content_type and header_content_type != "application/json":
+            headers["Content-type"] = "application/json"
+        if params.find("commit=true"):
+            params = params + "&commit=true"
+        post_data = json.dumps(data)
+        r = requests.post(url=url, data=post_data, headers=headers, params=params)
+        return r.json()
 
-    def _full_sync(self):
-        pass
-
-    def _index_data(self):
-        pass
-
-    def _delete_data(self):
-        pass
-
-    def _update_data(self):
-        pass
+if __name__ == "__main__":
+    solr = SolrSync()
+    data = {
+        "add":{
+            "doc":{
+                "fid":1234,
+                "fsid":1234,
+                "name":"yctest"
+            }
+        }
+        # "delete":{"id":1234}
+    }
+    result = solr.post_data_to_search_engine(config.solr_config["schema"],
+                            config.solr_config["host"],
+                            config.solr_config["port"],
+                            config.solr_config["path"],
+                            data)
+    print result
