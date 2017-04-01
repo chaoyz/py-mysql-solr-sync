@@ -3,8 +3,8 @@
 
 import requests
 import json
-
 from src import solr_sync
+
 
 def test_index_doc():
     url ='http://127.0.0.1:8081/solr/fileindex/update/json?commit=true'
@@ -71,8 +71,13 @@ def test_index_doc_2():
     print r.status_code
     print r.json()
 
+
+
 if __name__ == "__main__":
-    test_index_doc()
-    test_update_doc()
-    test_delete_doc()
-    test_index_doc_2()
+    # test_index_doc()
+    # test_update_doc()
+    # test_delete_doc()
+    # test_index_doc_2()
+    solr = solr_sync.SolrSync()
+    solr.detele_all_index()
+    solr.start()
