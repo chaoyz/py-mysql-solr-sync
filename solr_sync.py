@@ -1,16 +1,18 @@
 #!/usr/local/env python
 # encoding:utf8
 
-import config
-import logging
-import requests
-import json
-import MySQLdb
-import subprocess
-import os
 import ConfigParser
+import json
+import logging
+import os
+import subprocess
+
+import MySQLdb
+import requests
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
+
+import config
 
 
 class SolrSync(object):
@@ -208,10 +210,10 @@ class SolrSync(object):
             for k, v in doc.items():
                 self.logger.info('%s:%s' % (k, v))
                 self._post_data_to_search_engine(config.solr_config["schema"],
-                                             config.solr_config["host"],
-                                             config.solr_config["port"],
-                                             config.solr_config["path"],
-                                             v)
+                                                 config.solr_config["host"],
+                                                 config.solr_config["port"],
+                                                 config.solr_config["path"],
+                                                 v)
 
 if __name__ == "__main__":
     solr = SolrSync()

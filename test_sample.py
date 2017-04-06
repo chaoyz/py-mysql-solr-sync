@@ -1,10 +1,11 @@
 #!/usr/local/env python
 # coding:utf8
 
-import requests
 import json
-from src import solr_sync
-
+import requests
+import solr_sync
+from pymysqlreplication import BinLogStreamReader
+from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
 def test_index_doc():
     url ='http://127.0.0.1:8081/solr/fileindex/update/json?commit=true'
@@ -71,13 +72,33 @@ def test_index_doc_2():
     print r.status_code
     print r.json()
 
+def test_binlog_info():
+    binlog_conf = {"host":"127.0.0.1", "port":3306, "user":"ekpapi", "passwd":"ekpapi", "charset": 'utf8', "db":"xserver"}
+    stream = BinLogStreamReader(connection_settings=binlog_conf,
+                                server_id=2,
+                                only_tables=["test"],
+                                only_schemas=["xserver"],
+                                # only_events=[QueryEvent],
+                                only_events=[DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent],
+                                blocking=True)
+
+    count = 0
+    for binlog_event in stream:
+        print stream.log_file
+        print stream.log_pos
+        binlog_event.dump()
+        print "rows: %s" % binlog_event.rows
+        count += 1
+    print count
+    stream.close()
 
 
 if __name__ == "__main__":
-    # test_index_doc()
-    # test_update_doc()
-    # test_delete_doc()
-    # test_index_doc_2()
+    test_index_doc()
+    test_update_doc()
+    test_delete_doc()
+    test_index_doc_2()
     solr = solr_sync.SolrSync()
     solr.detele_all_index()
     solr.start()
+    test_binlog_info()
