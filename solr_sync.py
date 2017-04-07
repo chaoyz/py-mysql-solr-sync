@@ -39,6 +39,26 @@ class SolrSync(object):
                     pos_value = conf.get("info", "binlog_pos")
                     if pos_value:
                         self.binlog_pos = pos_value
+        self._check_mysql_service()
+        self._check_solr_service()
+
+    def _check_mysql_service(self):
+        conn = MySQLdb.connect(**self._mysql_config)
+        cursor = conn.cursor()
+        sql = 'show master status'
+        cursor.execute(sql)
+        cursor.close()
+        conn.close()
+
+    def _check_solr_service(self):
+        # http://127.0.0.1:8081/solr/core0/admin/ping?wt=json
+        url = self._solr_config['schema'] + "://" + self._solr_config['host'] + ":" + str(self._solr_config['port']) + self._solr_config['path'] + "/admin/ping?wt=json"
+        headers = {'Content-type': 'application/json'}
+        r = requests.get(url, headers=headers)
+        if r.status_code != 200:
+            raise Exception("ping server response not 200! content:%s" % r.content)
+        result = r.json()
+        print "ping solr server response:%s" % result
 
     def _post_data_to_search_engine(self, schema, host, port, path, data, headers={'Content-type': 'application/json'}):
         url = schema + "://" + host + ":" + str(port) + path + "/update?commit=true"
