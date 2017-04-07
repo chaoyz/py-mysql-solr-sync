@@ -217,4 +217,4 @@ class SolrSync(object):
 
 if __name__ == "__main__":
     solr = SolrSync()
-    solr.run(True)
+    solr.run(False)
