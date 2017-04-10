@@ -102,25 +102,18 @@ class SolrSync(object):
         self._save_binlog_info()
 
     def get_table_information(self, conn, table):
-        columns = []
         sql = 'SELECT `COLUMN_NAME` FROM INFORMATION_SCHEMA.`COLUMNS` WHERE `TABLE_SCHEMA`="%s" AND `TABLE_NAME`="%s"' % (
             self._mysql_config.get("db"), config.table)
         try:
             cursor = conn.cursor()
             cursor.execute(sql)
             rows = cursor.fetchall()
-            for row in rows:
-                columns.append(row[0])
-            return columns
+            return [row[0] for row in rows]
         except Exception, e:
             self.logger.error("get_table_information sql exception", e)
 
     def select_table_data(self, conn, table_name, fields, start, count):
-        columns = ""
-        for index, field in enumerate(fields):
-            columns = columns + " %s" % field
-            if index != len(fields) - 1:
-                columns = columns + ","
+        columns = ",".join(fields)
 
         sql = 'SELECT %s FROM %s LIMIT %s, %s' % (columns, table_name, start, count)
         try:
@@ -187,10 +180,7 @@ class SolrSync(object):
         raise IOError('mysql connection closed')
 
     def _load_delete_data(self, row):
-        # list = []
         mysql_main_key = self.mysql_column_solr_index_mapping.keys()[0]
-        # for row_values in row.values():
-        #     list.append(row_values[mysql_main_key])
         list = [row_values[mysql_main_key] for row_values in row.values()]
         return list
 
@@ -242,4 +232,4 @@ if __name__ == "__main__":
     solr = SolrSync()
     sys.stdout.write("start ok.")
     sys.stdout.flush()
-    solr.run(False)
+    solr.run(True)
