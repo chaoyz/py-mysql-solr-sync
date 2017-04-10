@@ -209,7 +209,8 @@ class SolrSync(object):
 
     def run(self, first_sync=False):
         '''
-
+        注意：使用的时候保证数据库开启binlog功能，并且在/etc/my.cnf文件中添加binlog-format = row
+        使pymysqlreplication模块的row_event生效。
         :return:
         '''
         # 第一次同步数据
