@@ -232,4 +232,4 @@ if __name__ == "__main__":
     solr = SolrSync()
     sys.stdout.write("start ok.")
     sys.stdout.flush()
-    solr.run(True)
+    solr.run(False)
