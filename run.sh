@@ -35,16 +35,27 @@ if [ ! -f $PID_FILE ]; then
 fi
 
 function start_service() {
+    PIDS=$(ps -ef | grep -F "python ./solr_sync" | grep -v grep | awk '{print $2}')
+    if [[ "$PIDS" != "" ]]; then
+        echo -e $RED"service is running."$NC
+        return
+    fi
+    LAST_POS=$(ls -al $STDOUT  | awk '{print $5}')
     echo "=======================start service============================" >> $STDOUT
     echo $(date '+%F %T') >> $STDOUT
-    python $SOLR_SYNC_FILE 1>>$STDOUT 2>&1 &
+    python $SOLR_SYNC_FILE 2>&1 1>>$STDOUT &
     echo $! > $PID_FILE
     PID=$!
     echo "process pid:$PID"
     for (( i=0;i<100;i++ )); do
         if [ $PID != "" ]; then
-            echo -e $GREEN"start service."$NC
-            return
+            if [ $(tail -n 2 $STDOUT | grep -c -F "start ok") -gt 0 ]; then
+                CUR_POS=$(ls -al $STDOUT  | awk '{print $5}')
+                tail -c $(expr $CUR_POS - $LAST_POS) $STDOUT
+                echo
+                echo -e $GREEN"start service."$NC
+                return
+            fi
         fi
         printf "."
         sleep 0.5
@@ -64,6 +75,7 @@ function stop_service() {
     EXEC=$(ps -ef | awk -v "PID=$PID" '{if( $2 == PID ) {print $9}}')
     if [[ "$EXEC" == "" ]]; then
         echo -e $RED"service is not running."$NC
+        echo "" > $PID_FILE
         return
     elif [[ "$EXEC" =~ "solr_sync" ]]; then
         kill -9 $PID
@@ -78,6 +90,18 @@ function stop_service() {
     echo
     echo -e $RED"stop service failed."$NC
     exit 1
+}
+
+
+
+function stop_all_service() {
+    LIST=$(ps -ef | grep -F "solr_sync" | grep -v grep | awk '{print $2}')
+    for pid in LIST
+    do
+        kill -9 $pid
+    done
+    echo -e $GREEN"stop all service successfully."$NC
+    echo "" > $PID_FILE
 }
 
 function status_service() {
@@ -109,6 +133,9 @@ case $MODE in
         ;;
     "status")
         status_service
+        ;;
+    "stopall")
+        stop_all_service
         ;;
     *)
         echo -e "Usage: $0 { start | stop | restart | status}"

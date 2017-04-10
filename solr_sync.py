@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import subprocess
+import sys
 
 import MySQLdb
 import requests
@@ -98,6 +99,7 @@ class SolrSync(object):
                 has_more_data = False
             else:
                 start = start + count
+        self._save_binlog_info()
 
     def get_table_information(self, conn, table):
         columns = []
@@ -185,10 +187,11 @@ class SolrSync(object):
         raise IOError('mysql connection closed')
 
     def _load_delete_data(self, row):
-        list = []
+        # list = []
         mysql_main_key = self.mysql_column_solr_index_mapping.keys()[0]
-        for row_values in row.values():
-            list.append(row_values[mysql_main_key])
+        # for row_values in row.values():
+        #     list.append(row_values[mysql_main_key])
+        list = [row_values[mysql_main_key] for row_values in row.values()]
         return list
 
     def _load_index_update_data(self, row):
@@ -237,4 +240,6 @@ class SolrSync(object):
 
 if __name__ == "__main__":
     solr = SolrSync()
+    sys.stdout.write("start ok.")
+    sys.stdout.flush()
     solr.run(False)
