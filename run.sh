@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#author:patrickstary
+#author:chaoyz
 
 RED='\e[1;91m'
 GREEN='\e[1;92m'

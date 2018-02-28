@@ -25,3 +25,4 @@ server-id=222  # mysql server的id，不能与其他的重复，222的位置随�
 ```
 sh run.sh start
 ```
+
